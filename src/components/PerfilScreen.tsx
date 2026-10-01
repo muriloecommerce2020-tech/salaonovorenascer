@@ -152,102 +152,20 @@ export const PerfilScreen: React.FC<PerfilScreenProps> = ({
           </div>
         </div>
 
-        {/* Alternar Perfil Operacional (3 opções) */}
-        <div className="bg-white rounded-xl p-4 shadow-xs border border-[#e1e3e2]/60 flex flex-col gap-3">
-          <span className="text-[11px] uppercase tracking-wider text-[#526259] font-bold">
-            Alternar Perfil Operacional
-          </span>
-          <p className="text-[12px] text-[#424844]">
-            Teste e visualize o sistema sob a perspectiva de cada tipo de usuário:
-          </p>
-
-          <div className="flex flex-col gap-2">
-            {/* Prestador de Serviço */}
-            <button
-              type="button"
-              onClick={() => {
-                onSwitchRole('service_provider');
-                handleSave();
-              }}
-              className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
-                currentRole === 'service_provider'
-                  ? 'bg-[#cfe5d7] border-[#4c6358] text-[#273d33]'
-                  : 'bg-[#f3f4f3] border-[#e1e3e2] text-[#424844] hover:bg-[#e7e8e7]'
-              }`}
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5 font-bold text-[13px]">
-                  <span className="material-symbols-outlined text-[18px]">work</span>
-                  <span>Prestador de Serviço</span>
-                </div>
-                {currentRole === 'service_provider' && (
-                  <span className="px-2 py-0.5 rounded-full bg-[#4c6358] text-white text-[10px] font-bold">
-                    Ativo
-                  </span>
-                )}
-              </div>
-              <span className="text-[11px] text-[#526259] block mt-1">
-                Visualiza e opera exclusivamente <strong>Novo Atendimento</strong> e <strong>Meus Ganhos</strong>.
-              </span>
-            </button>
-
-            {/* Colaborador CLT */}
-            <button
-              type="button"
-              onClick={() => {
-                onSwitchRole('employee');
-                handleSave();
-              }}
-              className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
-                currentRole === 'employee'
-                  ? 'bg-[#cfe5d7] border-[#4c6358] text-[#273d33]'
-                  : 'bg-[#f3f4f3] border-[#e1e3e2] text-[#424844] hover:bg-[#e7e8e7]'
-              }`}
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5 font-bold text-[13px]">
-                  <span className="material-symbols-outlined text-[18px]">fingerprint</span>
-                  <span>Colaborador(a) com Registro de Ponto</span>
-                </div>
-                {currentRole === 'employee' && (
-                  <span className="px-2 py-0.5 rounded-full bg-[#4c6358] text-white text-[10px] font-bold">
-                    Ativo
-                  </span>
-                )}
-              </div>
-              <span className="text-[11px] text-[#526259] block mt-1">
-                Atendimentos, comissões + marcação diária de <strong>Entrada e Saída</strong> e envio de justificativas.
-              </span>
-            </button>
-
-            {/* Administrador */}
-            <button
-              type="button"
-              onClick={() => {
-                onSwitchRole('admin');
-                handleSave();
-              }}
-              className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
-                currentRole === 'admin'
-                  ? 'bg-[#cfe5d7] border-[#4c6358] text-[#273d33]'
-                  : 'bg-[#f3f4f3] border-[#e1e3e2] text-[#424844] hover:bg-[#e7e8e7]'
-              }`}
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5 font-bold text-[13px]">
-                  <span className="material-symbols-outlined text-[18px]">admin_panel_settings</span>
-                  <span>Administrador(a) Geral</span>
-                </div>
-                {currentRole === 'admin' && (
-                  <span className="px-2 py-0.5 rounded-full bg-[#4c6358] text-white text-[10px] font-bold">
-                    Ativo
-                  </span>
-                )}
-              </div>
-              <span className="text-[11px] text-[#526259] block mt-1">
-                Acesso total: faturamento global, auditoria e ajustes manuais de ponto com carimbo.
-              </span>
-            </button>
+        {/* Nível de Acesso Autorizado */}
+        <div className="bg-white rounded-xl p-4 shadow-xs border border-[#e1e3e2]/60 flex flex-col gap-2.5">
+          <div className="flex items-center gap-2">
+            <span className="material-symbols-outlined text-[#4c6358] text-[20px]">shield</span>
+            <span className="text-[12px] font-bold text-[#191c1c] uppercase tracking-wider">
+              Segurança &amp; Nível de Acesso
+            </span>
+          </div>
+          <div className="p-3 bg-[#f3f4f3] rounded-xl border border-[#e1e3e2]/60 flex flex-col gap-1">
+            <span className="text-[11px] text-[#526259]">Perfil Concedido:</span>
+            <span className="text-[13px] font-bold text-[#4c6358]">{getRoleLabel()}</span>
+            <p className="text-[11px] text-[#526259] mt-1 leading-relaxed">
+              Suas permissões e módulos liberados são controlados exclusivamente pela Administração do Salão através do cadastro de equipe no Supabase.
+            </p>
           </div>
         </div>
 

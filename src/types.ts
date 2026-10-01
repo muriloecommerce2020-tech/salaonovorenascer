@@ -4,17 +4,20 @@ export type UserRole = 'admin' | 'service_provider' | 'employee';
 
 export interface Appointment {
   id: string;
+  userId?: string;
+  professionalName?: string;
   clientName: string;
   clientAvatar?: string;
   serviceName: string;
   price: number;
   commissionRate: number; // e.g. 0.40
   commissionAmount: number;
-  date: string; // e.g. "Hoje · 14:30" or "Ontem · 16:00"
+  date: string; // e.g. "Hoje · 14:30" or "2026-09-28"
   time: string;
   notes?: string;
   confirmed: boolean;
   paymentMethod?: 'PIX' | 'Crédito' | 'Débito' | 'Dinheiro';
+  createdAt?: string;
 }
 
 export interface TodayRecord {

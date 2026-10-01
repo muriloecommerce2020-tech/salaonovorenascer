@@ -421,7 +421,7 @@ export const PontoScreen: React.FC<PontoScreenProps> = ({
             {/* Banner: Esqueceu de marcar o ponto? */}
             <div className="bg-[#fff8f6] border border-[#ffdad6] p-4 rounded-2xl flex items-start gap-3 shadow-xs">
               <div className="w-10 h-10 rounded-xl bg-[#ffdad6] text-[#ba1a1a] flex items-center justify-center shrink-0 mt-0.5">
-                <span className="material-symbols-outlined text-[22px]">history_toggle_drop_down</span>
+                <span className="material-symbols-outlined text-[22px]">pending_actions</span>
               </div>
               <div className="flex flex-col min-w-0 flex-1">
                 <span className="text-[13px] font-bold text-[#191c1c]">

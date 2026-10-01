@@ -24,13 +24,15 @@ import {
   fetchAllProfiles,
   fetchAppointmentsFromDb,
   saveAppointmentToDb,
+  updateAppointmentInDb,
+  deleteAppointmentFromDb,
   fetchTimeRecordsFromDb,
   saveTimeRecordToDb,
   UserProfile
 } from './lib/supabase';
 
 export default function App() {
-  const [currentScreen, setCurrentScreen] = useState<ScreenType>('ganhos');
+  const [currentScreen, setCurrentScreen] = useState<ScreenType>('login');
   const [currentRole, setCurrentRole] = useState<UserRole>('employee');
   const [currentUserName, setCurrentUserName] = useState<string>('Dorinha Ferreira');
   const [currentUserId, setCurrentUserId] = useState<string | undefined>(undefined);
@@ -137,10 +139,39 @@ export default function App() {
   }, []);
 
   const handleAddAppointment = (newApt: Appointment, newRecord: TodayRecord) => {
-    setAppointments((prev) => [newApt, ...prev]);
+    const aptWithStaff: Appointment = {
+      ...newApt,
+      professionalName: newApt.professionalName || currentUserName || 'Profissional',
+      userId: currentUserId || newApt.userId
+    };
+    setAppointments((prev) => [aptWithStaff, ...prev]);
     setTodayRecords((prev) => [newRecord, ...prev]);
     showToast(`Atendimento para ${newApt.clientName} registrado com sucesso!`);
-    saveAppointmentToDb(newApt, currentUserId);
+    saveAppointmentToDb(aptWithStaff, currentUserId, currentUserName);
+  };
+
+  const handleDeleteAppointment = async (id: string) => {
+    try {
+      await deleteAppointmentFromDb(id);
+      setAppointments((prev) => prev.filter((a) => a.id !== id));
+      showToast('Atendimento excluído com sucesso.');
+    } catch (err) {
+      console.warn('Erro ao excluir no Supabase, removendo localmente:', err);
+      setAppointments((prev) => prev.filter((a) => a.id !== id));
+      showToast('Atendimento excluído.');
+    }
+  };
+
+  const handleUpdateAppointment = async (updated: Appointment) => {
+    try {
+      await updateAppointmentInDb(updated);
+      setAppointments((prev) => prev.map((a) => (a.id === updated.id ? updated : a)));
+      showToast('Atendimento atualizado com sucesso no Supabase!');
+    } catch (err) {
+      console.warn('Erro ao atualizar no Supabase, atualizando localmente:', err);
+      setAppointments((prev) => prev.map((a) => (a.id === updated.id ? updated : a)));
+      showToast('Atendimento atualizado.');
+    }
   };
 
   const handleLoginSuccess = (role: UserRole, userName?: string) => {
@@ -455,6 +486,9 @@ export default function App() {
             appointments={appointments}
             onNavigate={handleNavigate}
             userName={currentUserName}
+            userRole={currentRole}
+            onDeleteAppointment={handleDeleteAppointment}
+            onUpdateAppointment={handleUpdateAppointment}
           />
         )}
 
@@ -463,6 +497,10 @@ export default function App() {
           <NovoAtendimentoScreen
             onAddAppointment={handleAddAppointment}
             todayRecords={todayRecords}
+            staffList={staffList}
+            currentUserName={currentUserName}
+            currentUserId={currentUserId}
+            userRole={currentRole}
           />
         )}
 
@@ -471,9 +509,11 @@ export default function App() {
           isServiceProviderRestricted ? (
             <RestrictedAccessView
               userRole={currentRole}
-              onSwitchToAdmin={() => handleSwitchRole('admin')}
-              onSwitchToEmployee={() => handleSwitchRole('employee')}
               onGoBack={() => setCurrentScreen('ganhos')}
+              onLogout={async () => {
+                await signOut();
+                setCurrentScreen('login');
+              }}
             />
           ) : (
             <PontoScreen
@@ -493,9 +533,11 @@ export default function App() {
           isServiceProviderRestricted || isEmployeeRestricted ? (
             <RestrictedAccessView
               userRole={currentRole}
-              onSwitchToAdmin={() => handleSwitchRole('admin')}
-              onSwitchToEmployee={() => handleSwitchRole('employee')}
               onGoBack={() => setCurrentScreen(currentRole === 'employee' ? 'ponto' : 'ganhos')}
+              onLogout={async () => {
+                await signOut();
+                setCurrentScreen('login');
+              }}
             />
           ) : (
             <PainelGeralScreen
@@ -514,9 +556,11 @@ export default function App() {
           isServiceProviderRestricted || isEmployeeRestricted ? (
             <RestrictedAccessView
               userRole={currentRole}
-              onSwitchToAdmin={() => handleSwitchRole('admin')}
-              onSwitchToEmployee={() => handleSwitchRole('employee')}
               onGoBack={() => setCurrentScreen(currentRole === 'employee' ? 'ponto' : 'ganhos')}
+              onLogout={async () => {
+                await signOut();
+                setCurrentScreen('login');
+              }}
             />
           ) : (
             <ExtratoPdfScreen />
@@ -579,16 +623,14 @@ export default function App() {
 
 interface RestrictedAccessViewProps {
   userRole: UserRole;
-  onSwitchToAdmin: () => void;
-  onSwitchToEmployee: () => void;
   onGoBack: () => void;
+  onLogout: () => void;
 }
 
 const RestrictedAccessView: React.FC<RestrictedAccessViewProps> = ({
   userRole,
-  onSwitchToAdmin,
-  onSwitchToEmployee,
-  onGoBack
+  onGoBack,
+  onLogout
 }) => {
   const isPrestador = userRole === 'service_provider';
 
@@ -608,7 +650,7 @@ const RestrictedAccessView: React.FC<RestrictedAccessViewProps> = ({
       <p className="text-[13px] text-[#424844] mt-2.5 leading-relaxed">
         {isPrestador
           ? 'Como Prestador(a) de Serviço parceiro(a), seu perfil possui acesso focado aos módulos de Novo Atendimento e Meus Ganhos.'
-          : 'Como colaboradora, seu perfil está configurado para registrar atendimentos, consultar comissões e marcar o ponto diário.'}
+          : 'Como colaboradora, seu perfil está configurado para registrar atendimentos, consultar histórico e marcar o ponto diário.'}
       </p>
 
       <div className="flex flex-col w-full gap-2.5 mt-6">
@@ -618,29 +660,16 @@ const RestrictedAccessView: React.FC<RestrictedAccessViewProps> = ({
           className="w-full h-12 rounded-xl bg-[#4c6358] text-white text-[13px] font-semibold flex items-center justify-center gap-2 shadow-xs hover:bg-[#354c41] transition-all cursor-pointer"
         >
           <span className="material-symbols-outlined text-[18px]">arrow_back</span>
-          Voltar para Meus Ganhos
+          Voltar para Minha Área
         </button>
-
-        {isPrestador && (
-          <button
-            type="button"
-            onClick={onSwitchToEmployee}
-            className="w-full h-12 rounded-xl bg-[#cfe5d7] text-[#273d33] text-[13px] font-semibold flex items-center justify-center gap-2 border border-[#8fa89b]/50 hover:bg-[#b6ccbe] transition-all cursor-pointer"
-          >
-            <span className="material-symbols-outlined text-[18px] text-[#4c6358]">fingerprint</span>
-            Entrar como Colaborador(a) CLT (com Ponto)
-          </button>
-        )}
 
         <button
           type="button"
-          onClick={onSwitchToAdmin}
-          className="w-full h-12 rounded-xl bg-[#f3f4f3] text-[#191c1c] text-[13px] font-semibold flex items-center justify-center gap-2 border border-[#e1e3e2] hover:bg-[#e7e8e7] transition-all cursor-pointer"
+          onClick={onLogout}
+          className="w-full h-12 rounded-xl bg-[#f3f4f3] text-[#ba1a1a] text-[13px] font-semibold flex items-center justify-center gap-2 border border-[#e1e3e2] hover:bg-[#ffdad6]/40 transition-all cursor-pointer"
         >
-          <span className="material-symbols-outlined text-[18px] text-[#4c6358]">
-            admin_panel_settings
-          </span>
-          Entrar como Administradora Geral
+          <span className="material-symbols-outlined text-[18px]">logout</span>
+          Sair / Entrar com Outra Conta
         </button>
       </div>
     </div>

@@ -311,6 +311,8 @@ export async function fetchAppointmentsFromDb(): Promise<Appointment[]> {
 
   return data.map((d: any) => ({
     id: d.id,
+    userId: d.user_id,
+    professionalName: d.professional_name || 'Profissional',
     clientName: d.client_name,
     clientAvatar: d.client_avatar,
     serviceName: d.service_name,
@@ -322,28 +324,40 @@ export async function fetchAppointmentsFromDb(): Promise<Appointment[]> {
     notes: d.notes,
     confirmed: Boolean(d.confirmed),
     paymentMethod: d.payment_method,
+    createdAt: d.created_at,
   }));
 }
 
-export async function saveAppointmentToDb(appointment: Appointment, userId?: string) {
+export async function saveAppointmentToDb(
+  appointment: Appointment,
+  userId?: string,
+  professionalName?: string
+) {
+  const now = new Date();
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const dateFormatted = appointment.date || `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+  const timeFormatted = appointment.time || `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+
   const { data, error } = await supabase
     .from('appointments')
     .upsert(
       [
         {
           id: appointment.id,
-          user_id: userId || null,
+          user_id: userId || appointment.userId || null,
+          professional_name: professionalName || appointment.professionalName || null,
           client_name: appointment.clientName,
           client_avatar: appointment.clientAvatar,
           service_name: appointment.serviceName,
           price: appointment.price,
           commission_rate: appointment.commissionRate,
           commission_amount: appointment.commissionAmount,
-          date: appointment.date,
-          time: appointment.time,
+          date: dateFormatted,
+          time: timeFormatted,
           notes: appointment.notes,
           confirmed: appointment.confirmed,
           payment_method: appointment.paymentMethod || 'PIX',
+          created_at: appointment.createdAt || new Date().toISOString(),
         },
       ],
       { onConflict: 'id' }
@@ -352,6 +366,28 @@ export async function saveAppointmentToDb(appointment: Appointment, userId?: str
     .single();
 
   if (error) console.error('Erro ao salvar atendimento no Supabase:', error);
+  return data;
+}
+
+export async function updateAppointmentInDb(appointment: Appointment) {
+  const { data, error } = await supabase
+    .from('appointments')
+    .update({
+      client_name: appointment.clientName,
+      service_name: appointment.serviceName,
+      price: appointment.price,
+      commission_rate: appointment.commissionRate,
+      commission_amount: appointment.commissionAmount,
+      date: appointment.date,
+      time: appointment.time,
+      payment_method: appointment.paymentMethod || 'PIX',
+      notes: appointment.notes,
+    })
+    .eq('id', appointment.id)
+    .select()
+    .single();
+
+  if (error) throw error;
   return data;
 }
 

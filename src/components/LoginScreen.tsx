@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { UserRole, ScreenType } from '../types';
 import { IMAGES } from '../data/mockData';
-import { signIn, signUp } from '../lib/supabase';
+import { signIn, signUp, supabase } from '../lib/supabase';
 
 interface LoginScreenProps {
   onLoginSuccess: (role: UserRole, userName?: string) => void;
@@ -43,8 +43,32 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
       if (authMode === 'login') {
         try {
           const authData = await signIn(username, password);
-          const userRole = (authData.user?.user_metadata?.role as UserRole) || role;
-          const userDisplayName = authData.user?.user_metadata?.name || fullName;
+          let userRole: UserRole = role;
+          let userDisplayName = fullName;
+
+          if (authData.user) {
+            try {
+              const { data: userProfile } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', authData.user.id)
+                .single();
+
+              if (userProfile?.role) {
+                userRole = userProfile.role as UserRole;
+              } else if (authData.user?.user_metadata?.role) {
+                userRole = authData.user.user_metadata.role as UserRole;
+              }
+
+              if (userProfile?.name) {
+                userDisplayName = userProfile.name;
+              } else if (authData.user?.user_metadata?.name) {
+                userDisplayName = authData.user.user_metadata.name;
+              }
+            } catch (pErr) {
+              console.warn('Erro ao consultar profile:', pErr);
+            }
+          }
 
           setFeedbackMsg({
             text: `Acesso autorizado via Supabase! Bem-vinda, ${userDisplayName}!`,

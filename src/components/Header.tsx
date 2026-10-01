@@ -142,121 +142,31 @@ export const Header: React.FC<HeaderProps> = ({
             className="absolute top-18 right-4 max-w-[300px] w-[92%] bg-white rounded-2xl shadow-xl border border-[#e1e3e2] p-4 flex flex-col gap-3 animate-in fade-in slide-in-from-top-2"
           >
             <div className="flex items-center gap-2.5 pb-2.5 border-b border-[#e1e3e2]/70">
-              <img
-                alt="Dorinha Ferreira"
-                referrerPolicy="no-referrer"
-                className="w-10 h-10 rounded-full object-cover border border-[#cee9da]"
-                src={IMAGES.DORINHA_AVATAR}
-              />
+              <div className="w-10 h-10 rounded-full bg-[#cfe5d7] text-[#273d33] font-bold flex items-center justify-center shrink-0 border border-[#8fa89b]/40">
+                {userName ? userName.slice(0, 2).toUpperCase() : 'US'}
+              </div>
               <div className="flex flex-col min-w-0">
                 <span className="text-[13px] font-bold text-[#191c1c] truncate">
-                  Dorinha Ferreira
+                  {userName}
                 </span>
                 <span className="text-[11px] text-[#526259]">
-                  Perfil atual: <strong>{roleInfo.label}</strong>
+                  Perfil: <strong>{roleInfo.label}</strong>
                 </span>
               </div>
             </div>
 
-            <div className="flex flex-col gap-1.5">
-              <span className="text-[10px] uppercase font-bold text-[#526259] tracking-wider">
-                Alternar Perfil
-              </span>
-
-              {/* Opção 1: Prestador de Serviço */}
+            <div className="flex flex-col gap-1">
               <button
                 type="button"
                 onClick={() => {
-                  onSwitchRole('service_provider');
+                  onNavigate('perfil');
                   setShowProfileMenu(false);
                 }}
-                className={`w-full py-2 px-2.5 rounded-xl text-left transition-colors cursor-pointer border ${
-                  currentRole === 'service_provider'
-                    ? 'bg-[#cfe5d7] border-[#8fa89b] text-[#273d33] font-bold'
-                    : 'bg-[#f3f4f3] border-transparent text-[#424844] hover:bg-[#e7e8e7]'
-                }`}
+                className="w-full py-2.5 px-3 rounded-xl hover:bg-[#f3f4f3] text-[#191c1c] text-[12px] font-semibold flex items-center gap-2 transition-colors cursor-pointer text-left"
               >
-                <div className="flex items-center justify-between text-[12px]">
-                  <span className="flex items-center gap-1.5 font-bold">
-                    <span className="material-symbols-outlined text-[17px]">work</span>
-                    Prestador de Serviço
-                  </span>
-                  {currentRole === 'service_provider' && (
-                    <span className="material-symbols-outlined text-[16px] text-[#4c6358]">check</span>
-                  )}
-                </div>
-                <span className="text-[10px] text-[#526259] block mt-0.5">
-                  Apenas agendamentos e comissões (Novo &amp; Ganhos)
-                </span>
+                <span className="material-symbols-outlined text-[18px] text-[#4c6358]">person</span>
+                Meu Perfil &amp; Chave Pix
               </button>
-
-              {/* Opção 2: Colaborador (com Ponto) */}
-              <button
-                type="button"
-                onClick={() => {
-                  onSwitchRole('employee');
-                  setShowProfileMenu(false);
-                }}
-                className={`w-full py-2 px-2.5 rounded-xl text-left transition-colors cursor-pointer border ${
-                  currentRole === 'employee'
-                    ? 'bg-[#cfe5d7] border-[#8fa89b] text-[#273d33] font-bold'
-                    : 'bg-[#f3f4f3] border-transparent text-[#424844] hover:bg-[#e7e8e7]'
-                }`}
-              >
-                <div className="flex items-center justify-between text-[12px]">
-                  <span className="flex items-center gap-1.5 font-bold">
-                    <span className="material-symbols-outlined text-[17px]">fingerprint</span>
-                    Colaborador(a) CLT
-                  </span>
-                  {currentRole === 'employee' && (
-                    <span className="material-symbols-outlined text-[16px] text-[#4c6358]">check</span>
-                  )}
-                </div>
-                <span className="text-[10px] text-[#526259] block mt-0.5">
-                  Novo, Ganhos + Registro de Ponto Diário (Entrada/Saída)
-                </span>
-              </button>
-
-              {/* Opção 3: Administrador */}
-              <button
-                type="button"
-                onClick={() => {
-                  onSwitchRole('admin');
-                  setShowProfileMenu(false);
-                }}
-                className={`w-full py-2 px-2.5 rounded-xl text-left transition-colors cursor-pointer border ${
-                  currentRole === 'admin'
-                    ? 'bg-[#cfe5d7] border-[#8fa89b] text-[#273d33] font-bold'
-                    : 'bg-[#f3f4f3] border-transparent text-[#424844] hover:bg-[#e7e8e7]'
-                }`}
-              >
-                <div className="flex items-center justify-between text-[12px]">
-                  <span className="flex items-center gap-1.5 font-bold">
-                    <span className="material-symbols-outlined text-[17px]">admin_panel_settings</span>
-                    Administrador(a)
-                  </span>
-                  {currentRole === 'admin' && (
-                    <span className="material-symbols-outlined text-[16px] text-[#4c6358]">check</span>
-                  )}
-                </div>
-                <span className="text-[10px] text-[#526259] block mt-0.5">
-                  Gestão total: Faturamento, Auditoria de Ponto &amp; Extrato PDF
-                </span>
-              </button>
-
-              {currentRole === 'admin' && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    onNavigate('perfil');
-                    setShowProfileMenu(false);
-                  }}
-                  className="w-full py-2 px-2.5 rounded-xl hover:bg-[#f3f4f3] text-[#191c1c] text-[12px] font-semibold flex items-center gap-2 transition-colors cursor-pointer text-left mt-1"
-                >
-                  <span className="material-symbols-outlined text-[18px] text-[#526259]">person</span>
-                  Configurações do Perfil
-                </button>
-              )}
             </div>
 
             <div className="pt-2 border-t border-[#e1e3e2]/70">
